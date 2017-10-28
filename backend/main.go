@@ -5,6 +5,8 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+	"io/ioutil"
+	"os/exec"
 
 	"google.golang.org/grpc"
 	"net"
@@ -32,7 +34,19 @@ type server struct {
 }
 
 func (server) Say(ctx context.Context, text *pb.Text) (*pb.Speech, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	f, err := ioutil.TempFile("", "")
+	checkError(err, "could'nt create file")
+	err = f.Close()
+	checkError(err, "Could not close file")
+
+	cmd := exec.Command("flite", "-t", text.Text, "-o", f.Name())
+	if data, err := cmd.CombinedOutput(); err != nil {
+		return nil, fmt.Errorf("flite failed with :  %s ", data)
+	}
+	data, err := ioutil.ReadFile(f.Name())
+	checkError(err, "could not read temp file")
+	return &pb.Speech{Audio: data}, nil
+
 }
 func checkError(err error, message string) {
 	if err != nil {

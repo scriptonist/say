@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
+	"os"
 
 	pb "github.com/scriptonist/say/api"
 )
@@ -15,13 +17,18 @@ func main() {
 	output := flag.String("o", "output.wav", "file to store output")
 	flag.Parse()
 
+	if len(os.Args) < 2 {
+		fmt.Printf("usage: \n\t%s \"text to speak\"\n", os.Args[0])
+		os.Exit(1)
+	}
+
 	conn, err := grpc.Dial(*backend, grpc.WithInsecure())
 	checkError(err, "Cannot reach GRPC Server")
 	defer conn.Close()
 
 	client := pb.NewTextToSpeechClient(conn)
 	text := &pb.Text{
-		Text: "Hello there",
+		Text: os.Args[1],
 	}
 
 	res, err := client.Say(context.Background(), text)
