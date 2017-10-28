@@ -17,7 +17,7 @@ func main() {
 	output := flag.String("o", "output.wav", "file to store output")
 	flag.Parse()
 
-	if len(os.Args) < 2 {
+	if flag.NArg() < 1 {
 		fmt.Printf("usage: \n\t%s \"text to speak\"\n", os.Args[0])
 		os.Exit(1)
 	}
@@ -28,7 +28,7 @@ func main() {
 
 	client := pb.NewTextToSpeechClient(conn)
 	text := &pb.Text{
-		Text: os.Args[1],
+		Text: flag.Arg(0),
 	}
 
 	res, err := client.Say(context.Background(), text)
